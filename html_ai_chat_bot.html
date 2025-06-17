@@ -1,40 +1,19 @@
-<!-- index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>AI Chatbot</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f2f2f2;
-      padding: 20px;
-    }
-    #chatbox {
-      width: 100%;
-      max-width: 600px;
-      height: 400px;
-      overflow-y: scroll;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #userInput {
-      width: 80%;
-      padding: 10px;
-    }
-    #sendBtn {
-      padding: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="chat.css" />
 </head>
 <body>
-  <h2>AI Chatbot</h2>
-  <div id="chatbox"></div>
-  <input type="text" id="userInput" placeholder="Type your message..." />
-  <button id="sendBtn">Send</button>
+  <div class="chat-container">
+    <h2 class="chat-title">🤖 AI Chatbot</h2>
+    <div id="chatbox" class="chatbox"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Ask me anything..." />
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
 
   <script>
     const chatbox = document.getElementById("chatbox");
@@ -55,11 +34,14 @@
       });
 
       const data = await response.json();
-      appendMessage("Bot", data.reply || "Error: No reply");
+      appendMessage("Bot", data.reply || "⚠️ Error: No reply");
     };
 
     function appendMessage(sender, message) {
-      chatbox.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
+      const bubble = document.createElement("div");
+      bubble.className = sender === "You" ? "chat-bubble user" : "chat-bubble bot";
+      bubble.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      chatbox.appendChild(bubble);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
   </script>
