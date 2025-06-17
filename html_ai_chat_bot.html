@@ -1,0 +1,67 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Chatbot</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f2f2f2;
+      padding: 20px;
+    }
+    #chatbox {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      overflow-y: scroll;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #userInput {
+      width: 80%;
+      padding: 10px;
+    }
+    #sendBtn {
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>AI Chatbot</h2>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Type your message..." />
+  <button id="sendBtn">Send</button>
+
+  <script>
+    const chatbox = document.getElementById("chatbox");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    sendBtn.onclick = async () => {
+      const input = userInput.value.trim();
+      if (!input) return;
+
+      appendMessage("You", input);
+      userInput.value = "";
+
+      const response = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const data = await response.json();
+      appendMessage("Bot", data.reply || "Error: No reply");
+    };
+
+    function appendMessage(sender, message) {
+      chatbox.innerHTML += `<p><strong>${sender}:</strong> ${message}</p>`;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
