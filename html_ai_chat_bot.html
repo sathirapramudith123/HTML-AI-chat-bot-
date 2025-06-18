@@ -2,16 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Chatbot</title>
   <link rel="stylesheet" href="chat.css" />
+
 </head>
 <body>
   <div class="chat-container">
-    <h2 class="chat-title">🤖 AI Chatbot</h2>
-    <div id="chatbox" class="chatbox"></div>
+    <h2 class="chat-title">✨ AI Assistant</h2>
+    <div id="chatbox" class="chatbox">
+      <div class="timestamp">Today</div>
+      <div class="chat-bubble bot">
+        Hello! I'm your AI assistant. How can I help you today?
+      </div>
+    </div>
     <div class="input-area">
-      <input type="text" id="userInput" placeholder="Ask me anything..." />
-      <button id="sendBtn">Send</button>
+      <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off" />
+      <button id="sendBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -19,28 +31,84 @@
     const chatbox = document.getElementById("chatbox");
     const userInput = document.getElementById("userInput");
     const sendBtn = document.getElementById("sendBtn");
+    
+    // Add timestamp
+    function addTimestamp() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const timestamp = document.createElement('div');
+      timestamp.className = 'timestamp';
+      timestamp.textContent = timeString;
+      return timestamp;
+    }
+    
+    // Show typing indicator
+    function showTyping() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing-indicator';
+      typingDiv.innerHTML = `
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      `;
+      chatbox.appendChild(typingDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      return typingDiv;
+    }
+    
+    // Remove typing indicator
+    function hideTyping(typingElement) {
+      if (typingElement && typingElement.parentNode) {
+        typingElement.remove();
+      }
+    }
 
     sendBtn.onclick = async () => {
       const input = userInput.value.trim();
       if (!input) return;
 
+      // Add user message with timestamp
+      const userTimestamp = addTimestamp();
+      chatbox.appendChild(userTimestamp);
       appendMessage("You", input);
       userInput.value = "";
+      
+      // Show typing indicator
+      const typingElement = showTyping();
+      
+      try {
+        const response = await fetch("http://localhost:5000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input }),
+        });
 
-      const response = await fetch("http://localhost:5000/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
-      });
-
-      const data = await response.json();
-      appendMessage("Bot", data.reply || "⚠️ Error: No reply");
+        const data = await response.json();
+        
+        // Remove typing indicator and add bot response
+        hideTyping(typingElement);
+        const botTimestamp = addTimestamp();
+        chatbox.appendChild(botTimestamp);
+        appendMessage("Bot", data.reply || "I couldn't process that request. Please try again.");
+      } catch (error) {
+        hideTyping(typingElement);
+        const errorTimestamp = addTimestamp();
+        chatbox.appendChild(errorTimestamp);
+        appendMessage("Bot", "⚠️ Error: Connection issue. Please check your network.");
+      }
     };
+
+    // Allow sending with Enter key
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendBtn.click();
+      }
+    });
 
     function appendMessage(sender, message) {
       const bubble = document.createElement("div");
       bubble.className = sender === "You" ? "chat-bubble user" : "chat-bubble bot";
-      bubble.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      bubble.textContent = message;
       chatbox.appendChild(bubble);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
